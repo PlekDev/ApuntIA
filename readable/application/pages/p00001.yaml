@@ -1,0 +1,287 @@
+---
+# ====== Page: Dashboard =====================================
+id: 1
+identification: 
+  name: Dashboard
+  alias: DASHBOARD
+  title: Sistema RAG - Apuntes
+
+appearance: 
+  page-mode: Normal
+  page-template: Theme Default
+  template-options: 
+  - '#DEFAULT#'
+
+navigation-menu: 
+  override-user-interface-level: false
+
+navigation: 
+  cursor-focus: Do not focus cursor
+  warn-on-unsaved-changes: true
+
+security: 
+  authentication: Page Requires Authentication
+  deep-linking: Application Default
+  page-access-protection: Arguments Must Have Checksum
+  form-auto-complete: Off
+  browser-cache: Application Default
+
+session-management: 
+  rejoin-sessions: Application Default
+
+advanced: 
+  enable-duplicate-page-submissions: Yes - Enable page to be re-posted
+  reload-on-submit: Only for Success
+
+server-cache: 
+  caching: Disabled
+
+regions: 
+- # ====== Region: Sistema RAG - Apuntes =======================
+  id: 8139196270085597
+  identification: 
+    name: Sistema RAG - Apuntes
+    type: Static Content
+
+  layout: 
+    sequence: 10
+    parent-region: No Parent
+    slot: REGION_POSITION_01
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Hero
+    template-options: 
+    - '#DEFAULT#'
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  image: 
+    file-url: '#APP_FILES#icons/app-icon-512.png'
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    settings: 
+      output-as: HTML
+      expand-shortcuts: false
+
+- # ====== Region: Estadísticas ================================
+  id: 8176437356235407
+  identification: 
+    name: Estadísticas
+    type: Cards
+
+  source: 
+    location: Local Database
+    type: SQL Query
+    sql-query: |
+      -- Estadísticas (Cards Region)
+      SELECT 
+          'Documentos' as title,
+          COUNT(*) as value,
+          'fa-file-text' as icon
+      FROM APUNTIA_DOCUMENTS
+      UNION ALL
+      SELECT 
+          'Flashcards',
+          COUNT(*),
+          'fa-clone'
+      FROM APUNTIA_FLASHCARDS
+      UNION ALL
+      SELECT 
+          'Conversaciones',
+          COUNT(*),
+          'fa-comments'
+      FROM APUNTIA_CONVERSATIONS;
+
+  order-by: 
+    type: None
+
+  layout: 
+    sequence: 10
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Cards Container
+    template-options: 
+    - '#DEFAULT#'
+    - t-CardsRegion--hideHeader js-addHiddenHeadingRoleDesc
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    id: 8176678681235409
+    appearance: 
+      layout: Grid
+      grid-columns: 3 Columns
+
+    title: 
+      advanced-formatting: false
+      column: TITLE
+
+    subtitle: 
+      advanced-formatting: false
+
+    body: 
+      advanced-formatting: false
+      column: VALUE
+
+    secondary-body: 
+      advanced-formatting: false
+
+    icon-and-badge: 
+      icon-source: Icon Class Column
+      icon-column: ICON
+      icon-position: Start
+
+    media: 
+      advanced-formatting: false
+      source: No Media
+
+    performance: 
+      lazy-loading: false
+
+    pagination: 
+      type: Scroll
+      show-total-count: false
+
+- # ====== Region: Estadísticas del Sistema ====================
+  id: 8180238081235445
+  identification: 
+    name: Estadísticas del Sistema
+    type: Cards
+
+  source: 
+    location: Local Database
+    type: SQL Query
+    sql-query: |
+      SELECT 
+          'Documentos Totales' as CARD_TITLE,
+          COUNT(*) as CARD_TEXT,
+          'fa-file-text-o' as CARD_ICON,
+          'u-color-1' as CARD_CSS_CLASSES,
+          NULL as CARD_LINK
+      FROM APUNTIA_DOCUMENTS
+      WHERE user_id = :APP_USER
+      UNION ALL
+      SELECT 
+          'Documentos Procesados',
+          COUNT(*),
+          'fa-check-circle',
+          'u-color-9',
+          NULL
+      FROM APUNTIA_DOCUMENTS
+      WHERE status = 'PROCESSED' 
+      AND user_id = :APP_USER
+      UNION ALL
+      SELECT 
+          'Fragmentos de Texto',
+          COUNT(*),
+          'fa-puzzle-piece',
+          'u-color-14',
+          NULL
+      FROM APUNTIA_CHUNKS c
+      JOIN APUNTIA_DOCUMENTS d ON c.document_id = d.document_id
+      WHERE d.user_id = :APP_USER
+      UNION ALL
+      SELECT 
+          'Conversaciones',
+          COUNT(*),
+          'fa-comments',
+          'u-color-20',
+          NULL
+      FROM APUNTIA_CONVERSATIONS
+      WHERE user_id = :APP_USER
+
+  order-by: 
+    type: None
+
+  layout: 
+    sequence: 4
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Cards Container
+    template-options: 
+    - '#DEFAULT#'
+    - t-CardsRegion--hideHeader js-addHiddenHeadingRoleDesc
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    id: 8180305070235446
+    appearance: 
+      layout: Grid
+      grid-columns: Auto
+
+    title: 
+      advanced-formatting: false
+
+    subtitle: 
+      advanced-formatting: false
+
+    body: 
+      advanced-formatting: false
+
+    secondary-body: 
+      advanced-formatting: false
+
+    icon-and-badge: 
+      icon-source: No Icon
+
+    media: 
+      advanced-formatting: false
+      source: No Media
+
+    performance: 
+      lazy-loading: false
+
+    pagination: 
+      type: Scroll
+      show-total-count: false
+

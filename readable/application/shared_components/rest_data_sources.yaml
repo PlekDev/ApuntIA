@@ -1,0 +1,187 @@
+---
+- # ====== REST Data Source: GROQ_API ==========================
+  id: 10951334281456447
+  identification: 
+    name: GROQ_API
+
+  subscription: 
+    version-number: 44846799776841
+
+  source: 
+    type: HTTP
+    remote-server: api-groq-com-openai-v1 # 10950004808456429
+    url-path-prefix: /chat/completions
+
+  settings: 
+    pagination-type: NO PAGINATION
+
+  authentication: 
+    credentials: GROQ_CREDENTIAL # 10948699476416753
+
+  rest-synchronization: 
+    job-is-active: false
+    local-table-owner: Parsing Schema
+
+  advanced: 
+    static-id: groq_api
+    pass-ecid: Application Default
+
+  data-profiles: 
+    id: 10950263356456433
+    identification: 
+      name: GROQ_API
+
+    data-profile: 
+      format: JSON
+      row-selector: items
+      contains-single-row: false
+      use-raw-selectors: false
+
+    advanced: 
+      encoding: Database Character Set
+
+    columns: 
+    - # ====== Column: COLUMN_1_ID =================================
+      id: 10950477392456441
+      identification: 
+        column-name: COLUMN_1_ID
+
+      source: 
+        type: Data
+        data-type: NUMBER
+        primary-key: false
+
+      parsing: 
+        path-expression: id
+
+      remote-rest-data-source-server: 
+        filterable: true
+        is-common: true
+
+      advanced: 
+        sequence: 1
+        hidden: false
+
+    - # ====== Column: COLUMN_2_NAME ===============================
+      id: 10950746766456443
+      identification: 
+        column-name: COLUMN_2_NAME
+
+      source: 
+        type: Data
+        data-type: VARCHAR2
+        maximum-length: 2000
+        primary-key: false
+
+      parsing: 
+        path-expression: name
+
+      remote-rest-data-source-server: 
+        filterable: true
+        is-common: true
+
+      advanced: 
+        sequence: 2
+        hidden: false
+
+    - # ====== Column: COLUMN_3_HIREDATE ===========================
+      id: 10951040095456444
+      identification: 
+        column-name: COLUMN_3_HIREDATE
+
+      source: 
+        type: Data
+        data-type: DATE
+        primary-key: false
+
+      parsing: 
+        path-expression: hire-date
+        format-mask: 'YYYY-MM-DD"T"HH24:MI:SS'
+        has-time-zone: false
+
+      remote-rest-data-source-server: 
+        filterable: true
+        is-common: true
+
+      advanced: 
+        sequence: 3
+        hidden: false
+
+  operations: 
+  - # ====== Operation: GET ======================================
+    id: 10951509095456453
+    label: 
+      label: GET
+
+    operation: 
+      url-pattern: .
+      http-method: GET
+      database-operation: Fetch Rows
+
+    remote-cache: 
+      caching: Disabled
+
+    advanced: 
+      allow-fetching-all-rows: false
+      force-raise-http-404-error: false
+
+  - # ====== Operation: POST =====================================
+    id: 10951927884456458
+    label: 
+      label: POST
+
+    operation: 
+      url-pattern: .
+      http-method: POST
+      database-operation: Insert Row
+      request-body-template: |
+        {
+          "model": "mixtral-8x7b-32768",
+          "messages": [
+            {
+              "role": "user",
+              "content": "#PROMPT#"
+            }
+          ],
+          "max_tokens": 2000,
+          "temperature": 0.7
+        }
+
+    parameters: 
+    - # ====== Parameter: PROMPT ===================================
+      id: 10953423423506654
+      identification: 
+        name: PROMPT
+
+      operation: 
+        database-operation: Insert Row
+
+      parameter: 
+        type: Request or Response Body
+        data-type: String
+
+      value: 
+        direction: In
+        static: false
+        required: true
+
+  - # ====== Operation: PUT - /:id ===============================
+    id: 10952316250456459
+    label: 
+      label: 'PUT - /:id'
+
+    operation: 
+      url-pattern: '/:id'
+      http-method: PUT
+      database-operation: Update Row
+
+  - # ====== Operation: DELETE - /:id ============================
+    id: 10952742415456460
+    label: 
+      label: 'DELETE - /:id'
+
+    operation: 
+      url-pattern: '/:id'
+      http-method: DELETE
+      database-operation: Delete Row
+

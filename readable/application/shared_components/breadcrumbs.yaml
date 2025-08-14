@@ -1,0 +1,63 @@
+---
+- # ====== Breadcrumb: Breadcrumb ==============================
+  id: 8126008590085522
+  identification: 
+    name: Breadcrumb
+
+  entries: 
+  - # ====== Entry: Home =========================================
+    id: 8126264307085522
+    identification: 
+      name: Home
+      page-number: 1
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:1:&APP_SESSION.::&DEBUG.:::'
+        page: 1 # Dashboard
+
+  - # ====== Entry: Gestion de documentos ========================
+    id: 8994258919263789
+    identification: 
+      name: Gestion de documentos
+      page-number: 2
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:2:&APP_SESSION.::&DEBUG.:::'
+        page: 2 # Gestion de documentos
+
+  - # ====== Entry: Chat ApuntIA =================================
+    id: 9004214949471333
+    identification: 
+      name: Chat ApuntIA
+      page-number: 3
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:3:&APP_SESSION.::&DEBUG.:::'
+        page: 3 # Chat ApuntIA
+
+  - # ====== Entry: Sistema de Flashcards ========================
+    id: 9153441778978374
+    identification: 
+      name: Sistema de Flashcards
+      page-number: 4
+
+    execution: 
+      sequence: 10
+
+    link: 
+      target: 
+        url: 'f?p=&APP_ID.:4:&APP_SESSION.::&DEBUG.:::'
+        page: 4 # Flashcards
+

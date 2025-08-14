@@ -1,0 +1,1020 @@
+---
+# ====== Page: Flashcards ====================================
+id: 4
+identification: 
+  name: Flashcards
+  alias: FLASHCARDS
+  title: Flashcards
+
+appearance: 
+  page-mode: Normal
+  page-template: Theme Default
+  template-options: 
+  - '#DEFAULT#'
+
+navigation-menu: 
+  override-user-interface-level: false
+
+navigation: 
+  cursor-focus: Do not focus cursor
+  warn-on-unsaved-changes: true
+
+javascript: 
+  function-and-global-variable-declaration: |
+    function mostrarRespuesta() {
+        apex.item('P200_MOSTRAR_RESPUESTA').setValue('S');
+        apex.submit();
+    }
+    
+    function calificar(resultado) {
+        apex.server.process('GUARDAR_RESULTADO', {
+            x01: apex.item('P200_FLASHCARD_ID').getValue(),
+            x02: resultado
+        }, {
+            success: function() {
+                siguienteFlashcard();
+            }
+        });
+    }
+    
+    function siguienteFlashcard() {
+        apex.server.process('OBTENER_SIGUIENTE', {}, {
+            success: function(data) {
+                apex.item('P200_FLASHCARD_ID').setValue(data.id);
+                apex.item('P200_MOSTRAR_RESPUESTA').setValue('N');
+                apex.submit();
+            }
+        });
+    }
+
+security: 
+  authentication: Page Requires Authentication
+  deep-linking: Application Default
+  page-access-protection: Arguments Must Have Checksum
+  form-auto-complete: Off
+  browser-cache: Application Default
+
+session-management: 
+  rejoin-sessions: Application Default
+
+advanced: 
+  enable-duplicate-page-submissions: Yes - Enable page to be re-posted
+  reload-on-submit: Only for Success
+
+server-cache: 
+  caching: Disabled
+
+regions: 
+- # ====== Region: Breadcrumb ==================================
+  id: 9152940911978372
+  identification: 
+    name: Breadcrumb
+    type: Breadcrumb
+
+  source: 
+    breadcrumb: Breadcrumb # 8126008590085522
+
+  layout: 
+    sequence: 10
+    parent-region: No Parent
+    slot: REGION_POSITION_01
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Title Bar
+    template-options: 
+    - '#DEFAULT#'
+    - t-BreadcrumbRegion--useBreadcrumbTitle
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    appearance: 
+      breadcrumb-template: Breadcrumb
+      template-options: 
+      - '#DEFAULT#'
+
+- # ====== Region: Estadísticas ================================
+  id: 10841081294945506
+  identification: 
+    name: Estadísticas
+    title: EEstadísticas
+    type: Classic Report
+
+  source: 
+    location: Local Database
+    type: SQL Query
+    sql-query: "SELECT 'Total: ' || COUNT(*) || ' tarjetas' as stat1, 'Estudiadas hoy: ' || SUM(CASE WHEN ya_respondida != 'N' THEN 1 ELSE 0 END) as stat2, 'Promedio: ' || ROUND(AVG(porcentaje_acierto), 1) || '%' as stat3 FROM V_FLASHCARDS_STATS;"
+
+  order-by: 
+    type: None
+
+  layout: 
+    sequence: 10
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    layout: 
+      number-of-rows-type: Static Value
+      number-of-rows: 15
+
+    appearance: 
+      template-type: Theme
+      template: Standard
+      template-options: 
+      - '#DEFAULT#'
+      - t-Report--altRowsDefault
+      - t-Report--rowHighlight
+
+    pagination: 
+      type: Row Ranges X to Y (with next and previous links)
+      display-position: Bottom - Right
+      partial-page-refresh: true
+
+    performance: 
+      lazy-loading: false
+
+    break-formatting: 
+      break-columns: No Break
+
+    advanced: 
+      strip-html: false
+      sort-nulls: Last
+
+    heading: 
+      type: Custom Headings
+
+    download: 
+      csv-export-enabled: false
+
+    printing: 
+      enabled: false
+
+  columns: 
+  - # ====== Column: STAT1 =======================================
+    id: 10841118151945507
+    identification: 
+      column-name: STAT1
+      type: Plain Text
+
+    heading: 
+      heading: Stat1
+      alignment: start
+
+    layout: 
+      sequence: 10
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: true
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: STAT2 =======================================
+    id: 10841254072945508
+    identification: 
+      column-name: STAT2
+      type: Plain Text
+
+    heading: 
+      heading: Stat2
+      alignment: start
+
+    layout: 
+      sequence: 20
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: true
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+  - # ====== Column: STAT3 =======================================
+    id: 10841320855945509
+    identification: 
+      column-name: STAT3
+      type: Plain Text
+
+    heading: 
+      heading: Stat3
+      alignment: start
+
+    layout: 
+      sequence: 30
+      column-alignment: start
+
+    accessibility: 
+      value-identifies-row: false
+
+    sorting: 
+      sortable: true
+
+    export-/-printing: 
+      include-in-export-/-print: true
+
+    advanced: 
+      compute-sum: false
+
+    ui-defaults-reference: 
+      table-owner: Parsing Schema
+
+    security: 
+      escape-special-characters: true
+
+- # ====== Region: Flashcard ===================================
+  id: 10841448041945510
+  identification: 
+    name: Flashcard
+    title: Flashcard
+    type: Dynamic Content
+
+  source: 
+    language: PL/SQL
+    pl/sql-function-body-returning-a-clob: |
+      DECLARE
+          v_id NUMBER;
+          v_pregunta VARCHAR2(500);
+          v_respuesta CLOB;
+          v_categoria VARCHAR2(100);
+          v_mostrar VARCHAR2(1);
+          v_html CLOB; -- Variable para almacenar el HTML generado
+      BEGIN
+          -- Inicializar el HTML
+          v_html := '';
+      
+          -- Obtener el ID de la flashcard actual (o una aleatoria si no hay)
+          v_id := NVL(:P200_FLASHCARD_ID, 0);
+          v_mostrar := NVL(:P200_MOSTRAR_RESPUESTA, 'N');
+          
+          -- Si no hay ID, obtener una flashcard aleatoria
+          IF v_id = 0 THEN
+              SELECT id INTO v_id
+              FROM (
+                  SELECT id FROM FLASHCARDS_SIMPLE 
+                  ORDER BY DBMS_RANDOM.VALUE
+              ) WHERE ROWNUM = 1;
+              
+              :P200_FLASHCARD_ID := v_id;
+          END IF;
+          
+          -- Obtener los datos de la flashcard
+          SELECT pregunta, respuesta, categoria
+          INTO v_pregunta, v_respuesta, v_categoria
+          FROM FLASHCARDS_SIMPLE
+          WHERE id = v_id;
+          
+          -- Construir el HTML
+          v_html := v_html || '<div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 600px; margin: 20px auto;">';
+          
+          -- Categoría
+          v_html := v_html || '<div style="text-align: center; margin-bottom: 20px;">';
+          v_html := v_html || '<span style="background: #e3f2fd; color: #1976d2; padding: 5px 15px; border-radius: 20px; font-size: 14px;">' || v_categoria || '</span>';
+          v_html := v_html || '</div>';
+          
+          -- Pregunta
+          v_html := v_html || '<h2 style="text-align: center; color: #333; margin: 20px 0;">' || v_pregunta || '</h2>';
+          
+          -- Respuesta
+          IF v_mostrar = 'S' THEN
+              v_html := v_html || '<div style="border-top: 2px solid #f0f0f0; margin-top: 20px; padding-top: 20px;">';
+              v_html := v_html || '<p style="color: #666; line-height: 1.6;">' || v_respuesta || '</p>';
+              v_html := v_html || '</div>';
+              
+              -- Botones de calificación
+              v_html := v_html || '<div style="display: flex; gap: 10px; justify-content: center; margin-top: 30px;">';
+              v_html := v_html || '<button onclick="calificar(''I'')" style="background: #ffcdd2; color: #c62828; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">❌ Incorrecta</button>';
+              v_html := v_html || '<button onclick="calificar(''C'')" style="background: #c8e6c9; color: #2e7d32; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">✅ Correcta</button>';
+              v_html := v_html || '</div>';
+          ELSE
+              -- Botón para mostrar respuesta
+              v_html := v_html || '<div style="text-align: center; margin-top: 30px;">';
+              v_html := v_html || '<button onclick="mostrarRespuesta()" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 16px; cursor: pointer;">Ver Respuesta</button>';
+              v_html := v_html || '</div>';
+          END IF;
+          
+          v_html := v_html || '</div>';
+          
+          -- Botón siguiente (siempre visible)
+          v_html := v_html || '<div style="text-align: center; margin-top: 20px;">';
+          v_html := v_html || '<button onclick="siguienteFlashcard()" style="background: #2196F3; color: white; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer;">➡️ Siguiente Tarjeta</button>';
+          v_html := v_html || '</div';
+          
+          RETURN v_html; -- Devolver el HTML generado
+      EXCEPTION
+          WHEN NO_DATA_FOUND THEN
+              RETURN '<div style="text-align: center; color: red;">No se encontraron flashcards disponibles.</div>';
+          WHEN OTHERS THEN
+              RETURN '<div style="text-align: center; color: red;">Error al cargar la flashcard: ' || SQLERRM || '</div>';
+      END;
+
+  layout: 
+    sequence: 20
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    performance: 
+      lazy-loading: false
+
+- # ====== Region: Todas las Flashcards ========================
+  id: 10841655152945512
+  identification: 
+    name: Todas las Flashcards
+    title: Todas las Flashcards
+    type: Interactive Report
+
+  source: 
+    location: Local Database
+    type: SQL Query
+    sql-query: |
+      SELECT 
+          id,
+          pregunta,
+          categoria,
+          CASE 
+              WHEN porcentaje_acierto >= 80 THEN '🟢'
+              WHEN porcentaje_acierto >= 50 THEN '🟡'
+              WHEN porcentaje_acierto > 0 THEN '🔴'
+              ELSE '⚪'
+          END as nivel,
+          porcentaje_acierto || '%' as acierto,
+          veces_correcta || '/' || (veces_correcta + veces_incorrecta) as intentos
+      FROM V_FLASHCARDS_STATS
+      ORDER BY categoria, pregunta;
+
+  layout: 
+    sequence: 30
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Interactive Report
+    template-options: 
+    - '#DEFAULT#'
+    - t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  server-cache: 
+    caching: Disabled
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    id: 10841739816945513
+    link: 
+      link-column: Exclude Link Column
+
+    pagination: 
+      type: Row Ranges X to Y
+      display-position: Bottom - Right
+
+    performance: 
+      lazy-loading: false
+      maximum-rows-to-process: 1000000
+
+    search-bar: 
+      include-search-bar: true
+      search-field: true
+      finder-drop-down: true
+      reports-select-list: true
+      rows-per-page-selector: false
+
+    actions-menu: 
+      include-actions-menu: true
+      filter: true
+      select-columns: true
+      rows-per-page: true
+      sort: true
+      control-break: true
+      highlight: true
+      compute: true
+      aggregate: true
+      chart: true
+      group-by: true
+      pivot: true
+      flashback: true
+      save-report: true
+      save-public-report: false
+      reset: true
+      help: true
+      download: true
+      subscription: true
+
+    download: 
+      formats: 
+      - CSV
+      - HTML
+      - Excel
+      - PDF
+      send-as-email: true
+
+    heading: 
+      fixed-to: Page
+
+    icon-view: 
+      show: false
+
+    detail-view: 
+      show: false
+
+    saved-reports: 
+    - # ====== Saved Report: Primary Report ========================
+      id: 11962045250633367
+      identification: 
+        name: Primary Report
+        alias: 119621
+
+    columns: 
+    - # ====== Column: ID ==========================================
+      id: 10841849699945514
+      identification: 
+        column-name: ID
+        type: Plain Text
+
+      heading: 
+        heading: Id
+        alignment: end
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 10
+        column-alignment: end
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: PREGUNTA ====================================
+      id: 10841972499945515
+      identification: 
+        column-name: PREGUNTA
+        type: Plain Text
+
+      heading: 
+        heading: Pregunta
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 20
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: CATEGORIA ===================================
+      id: 10842069131945516
+      identification: 
+        column-name: CATEGORIA
+        type: Plain Text
+
+      heading: 
+        heading: Categoria
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 30
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: NIVEL =======================================
+      id: 10842162209945517
+      identification: 
+        column-name: NIVEL
+        type: Plain Text
+
+      heading: 
+        heading: Nivel
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 40
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: ACIERTO =====================================
+      id: 10842212481945518
+      identification: 
+        column-name: ACIERTO
+        type: Plain Text
+
+      heading: 
+        heading: Acierto
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 50
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    - # ====== Column: INTENTOS ====================================
+      id: 10842338134945519
+      identification: 
+        column-name: INTENTOS
+        type: Plain Text
+
+      heading: 
+        heading: Intentos
+        alignment: start
+
+      single-row-view: 
+        use-column-heading: true
+
+      layout: 
+        sequence: 60
+        column-alignment: start
+
+      accessibility: 
+        value-identifies-row: false
+
+      source: 
+        primary-key: false
+
+      column-filter: 
+        type: Default Based on Column Type
+
+      enable-users-to: 
+        hide: true
+        sort: true
+        filter: true
+        highlight: true
+        control-break: true
+        aggregate: true
+        compute: true
+        chart: true
+        group-by: true
+        pivot: true
+
+      security: 
+        escape-special-characters: true
+
+    printing: 
+      output: 
+        layout: Default Report Layout
+        view-file-as: Attachment
+
+      page: 
+        size: Letter
+        orientation: Landscape
+        units: Inches
+        width: 11
+        height: 8.5
+        border-width: 0.5
+        border-color: '#666666'
+
+      page-header: 
+        font: Helvetica
+        font-weight: Normal
+        font-size: 12
+        font-color: '#000000'
+        alignment: center
+        page-header-text: Todas las Flashcards
+
+      column-headings: 
+        font: Helvetica
+        font-weight: Bold
+        font-size: 10
+        font-color: '#000000'
+        background-color: '#EEEEEE'
+
+      columns: 
+        font: Helvetica
+        font-weight: Normal
+        font-size: 10
+        font-color: '#000000'
+        background-color: '#FFFFFF'
+
+      page-footer: 
+        font: Helvetica
+        font-weight: Normal
+        font-size: 12
+        font-color: '#000000'
+        alignment: center
+
+page-items: 
+- # ====== Page Item: P200_FLASHCARD_ID ========================
+  id: 10841582192945511
+  identification: 
+    name: P200_FLASHCARD_ID
+    type: Hidden
+
+  settings: 
+    value-protected: false
+
+  layout: 
+    sequence: 10
+    region: Flashcard # 10841448041945510
+    slot: BODY
+
+  advanced: 
+    warn-on-unsaved-changes: Page Default
+
+  source: 
+    type: Null
+    used: Only when current value in session state is null
+
+  session-state: 
+    data-type: VARCHAR2
+    storage: Per Session (Persistent)
+
+  security: 
+    session-state-protection: Unrestricted
+    store-value-encrypted-in-session-state: true
+    restricted-characters: All characters can be saved.
+
+- # ====== Page Item: P200_MOSTRAR_RESPUESTA ===================
+  id: 10842431548945520
+  identification: 
+    name: P200_MOSTRAR_RESPUESTA
+    type: Hidden
+
+  settings: 
+    value-protected: false
+
+  layout: 
+    sequence: 20
+    region: Flashcard # 10841448041945510
+    slot: BODY
+
+  advanced: 
+    warn-on-unsaved-changes: Page Default
+
+  source: 
+    type: Null
+    used: Only when current value in session state is null
+
+  default: 
+    type: Static
+    static-value: "'N'"
+
+  session-state: 
+    data-type: VARCHAR2
+    storage: Per Session (Persistent)
+
+  security: 
+    session-state-protection: Unrestricted
+    store-value-encrypted-in-session-state: true
+    restricted-characters: All characters can be saved.
+
+dynamic-actions: 
+- # ====== Dynamic Action: voltear tarjetas ====================
+  id: 8179659939235439
+  identification: 
+    name: voltear tarjetas
+
+  execution: 
+    sequence: 10
+    event-scope: Static
+    type: Immediate
+
+  when: 
+    event: Click
+    selection-type: jQuery Selector
+    jquery-selector: .flashcard
+
+  actions: 
+  - # ====== Action: Flip Flashcard ==============================
+    id: 8179762459235440
+    identification: 
+      name: Flip Flashcard
+      action: Execute JavaScript Code
+
+    settings: 
+      code: |
+        const $card = $(this.triggeringElement);
+        if ($card.hasClass('flipped')) {
+            $card.find('.card-text').text($card.data('question'));
+            $card.removeClass('flipped');
+        } else {
+            $card.find('.card-text').text($card.data('answer'));
+            $card.addClass('flipped');
+        }
+        
+
+    execution: 
+      sequence: 10
+      event: voltear tarjetas # 8179659939235439
+      fire-when-event-result-is: True
+      fire-on-initialization: false
+
+processes: 
+- # ====== Process: GUARDAR_RESULTADO ==========================
+  id: 10842640761945522
+  identification: 
+    name: GUARDAR_RESULTADO
+    type: Execute Code
+    execution-chain: None
+
+  source: 
+    location: Local Database
+    language: PL/SQL
+    pl/sql-code: |
+      DECLARE
+          v_flashcard_id NUMBER := APEX_APPLICATION.g_x01;
+          v_resultado VARCHAR2(1) := APEX_APPLICATION.g_x02;
+      BEGIN
+          -- Guardar el progreso
+          INSERT INTO FLASHCARDS_PROGRESO (flashcard_id, user_id, ultima_respuesta)
+          VALUES (v_flashcard_id, :APP_USER, v_resultado);
+          
+          -- Actualizar estadísticas
+          IF v_resultado = 'C' THEN
+              UPDATE FLASHCARDS_SIMPLE 
+              SET veces_correcta = veces_correcta + 1
+              WHERE id = v_flashcard_id;
+          ELSE
+              UPDATE FLASHCARDS_SIMPLE 
+              SET veces_incorrecta = veces_incorrecta + 1
+              WHERE id = v_flashcard_id;
+          END IF;
+          
+          COMMIT;
+          
+          APEX_JSON.open_object;
+          APEX_JSON.write('success', true);
+          APEX_JSON.close_object;
+      END;
+
+  execution: 
+    sequence: 10
+    point: Ajax Callback
+    run-process: Once Per Page Visit (default)
+
+- # ====== Process: OBTENER_SIGUIENTE ==========================
+  id: 10842736901945523
+  identification: 
+    name: OBTENER_SIGUIENTE
+    type: Execute Code
+    execution-chain: None
+
+  source: 
+    location: Local Database
+    language: PL/SQL
+    pl/sql-code: |
+      DECLARE
+          v_next_id NUMBER;
+      BEGIN
+          -- Obtener una flashcard aleatoria que no se haya respondido hoy
+          BEGIN
+              SELECT id INTO v_next_id
+              FROM (
+                  SELECT f.id 
+                  FROM FLASHCARDS_SIMPLE f
+                  WHERE NOT EXISTS (
+                      SELECT 1 FROM FLASHCARDS_PROGRESO p
+                      WHERE p.flashcard_id = f.id 
+                      AND p.user_id = :APP_USER
+                      AND TRUNC(p.fecha_estudio) = TRUNC(SYSDATE)
+                  )
+                  ORDER BY DBMS_RANDOM.VALUE
+              ) WHERE ROWNUM = 1;
+          EXCEPTION
+              WHEN NO_DATA_FOUND THEN
+                  -- Si ya respondió todas, mostrar cualquiera
+                  SELECT id INTO v_next_id
+                  FROM (
+                      SELECT id FROM FLASHCARDS_SIMPLE 
+                      ORDER BY DBMS_RANDOM.VALUE
+                  ) WHERE ROWNUM = 1;
+          END;
+          
+          APEX_JSON.open_object;
+          APEX_JSON.write('id', v_next_id);
+          APEX_JSON.close_object;
+      END;
+
+  execution: 
+    sequence: 20
+    point: Ajax Callback
+    run-process: Once Per Page Visit (default)
+

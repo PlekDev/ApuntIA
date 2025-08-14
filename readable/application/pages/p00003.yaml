@@ -1,0 +1,512 @@
+---
+# ====== Page: Chat ApuntIA ==================================
+id: 3
+identification: 
+  name: Chat ApuntIA
+  alias: CHAT-APUNTIA
+  title: Chat ApuntIA
+
+appearance: 
+  page-mode: Normal
+  page-template: Theme Default
+  template-options: 
+  - '#DEFAULT#'
+
+navigation-menu: 
+  override-user-interface-level: false
+
+navigation: 
+  cursor-focus: Do not focus cursor
+  warn-on-unsaved-changes: true
+
+javascript: 
+  function-and-global-variable-declaration: |
+    let conversationId = null;
+    let isProcessing = false;
+    
+    $(document).ready(function() {
+        console.log('ApuntIA Chat inicializado');
+        initializeChat();
+        
+        $('#send-btn').click(sendMessage);
+        $('#user-input').keypress(function(e) {
+            if (e.which == 13 && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    });
+    
+    function initializeChat() {
+        apex.server.process('CREATE_CONVERSATION', {
+            x01: 'Nueva conversación - ' + new Date().toLocaleString()
+        }, {
+            success: function(data) {
+                if (data.success) {
+                    conversationId = data.conversation_id;
+                    console.log('Conversación creada:', conversationId);
+                    $('#conversation-info').text('Conversación #' + conversationId);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error AJAX:', error);
+            }
+        });
+    }
+    
+    function sendMessage() {
+        const userInput = $('#user-input').val().trim();
+        
+        if (!userInput) {
+            apex.message.showErrors({
+                type: "error",
+                location: "page",
+                message: "Por favor escribe una pregunta"
+            });
+            return;
+        }
+        
+        if (isProcessing) {
+            return;
+        }
+        
+        isProcessing = true;
+        $('#send-btn').prop('disabled', true);
+        
+        appendUserMessage(userInput);
+        $('#user-input').val('');
+        $('#typing-indicator').show();
+        scrollToBottom();
+        
+        apex.server.process('GENERATE_RAG_RESPONSE', {
+            x01: userInput,
+            x02: conversationId
+        }, {
+            success: function(data) {
+                $('#typing-indicator').hide();
+                
+                if (data.success) {
+                    if (data.conversation_id && !conversationId) {
+                        conversationId = data.conversation_id;
+                        $('#conversation-info').text('Conversación #' + conversationId);
+                    }
+                    
+                    appendBotMessage(data.response);
+                    apex.message.showPageSuccess("Respuesta generada correctamente");
+                } else {
+                    appendBotMessage('Lo siento, ocurrió un error: ' + (data.error || 'Error desconocido'));
+                }
+                
+                isProcessing = false;
+                $('#send-btn').prop('disabled', false);
+                scrollToBottom();
+            },
+            error: function(xhr, status, error) {
+                $('#typing-indicator').hide();
+                console.error('Error AJAX:', error, xhr.responseText);
+                appendBotMessage('Lo siento, no pude conectar con el servidor.');
+                isProcessing = false;
+                $('#send-btn').prop('disabled', false);
+            }
+        });
+    }
+    
+    function appendUserMessage(text) {
+        const messageHtml = `
+            <div class="user-message">
+                <div style="background: #007bff; color: white; padding: 12px 16px; border-radius: 10px; max-width: 70%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    ${escapeHtml(text)}
+                </div>
+            </div>
+        `;
+        $('#messages').append(messageHtml);
+    }
+    
+    function appendBotMessage(text) {
+        const formattedText = formatBotResponse(text);
+        
+        const messageHtml = `
+            <div class="bot-message" style="display: flex; align-items: start;">
+                <div class="avatar" style="width: 40px; height: 40px; background: #1e3a5f; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-right: 10px;">
+                    <span class="fa fa-robot"></span>
+                </div>
+                <div class="message-content" style="background: white; padding: 12px 16px; border-radius: 10px; max-width: 70%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    ${formattedText}
+                </div>
+            </div>
+        `;
+        $('#messages').append(messageHtml);
+    }
+    
+    function formatBotResponse(text) {
+        let formatted = text.replace(/\n/g, '<br>');
+        formatted = formatted.replace(/INFORMACIÓN ENCONTRADA:/g, '<strong>📋 INFORMACIÓN ENCONTRADA:</strong>');
+        formatted = formatted.replace(/=== CONTEXTO RELEVANTE ===/g, '<strong>📚 CONTEXTO RELEVANTE:</strong>');
+        formatted = formatted.replace(/--- Fragmento/g, '<em>📄 Fragmento</em>');
+        return formatted;
+    }
+    
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+    
+    function scrollToBottom() {
+        const container = $('#chat-container');
+        container.animate({
+            scrollTop: container[0].scrollHeight
+        }, 300);
+    }
+  execute-when-page-loads: |
+    $(document).ready(function() {
+        let conversationId = null;
+        
+        // Iniciar nueva conversación
+        function initConversation() {
+            apex.server.process('CREATE_CONVERSATION', {
+                x01: 'Nueva conversación'
+            }, {
+                success: function(data) {
+                    conversationId = data.conversation_id;
+                    console.log('Conversación iniciada:', conversationId);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error iniciando conversación:', error);
+                }
+            });
+        }
+        
+        // Enviar mensaje
+        window.sendMessage = function() {
+            const userInput = $('#user-input').val().trim();
+            if (!userInput) return false;
+            
+            // Mostrar mensaje del usuario
+            $('#messages').append('<div class="user-message"><strong>Tú:</strong> ' + userInput + '</div>');
+            $('#user-input').val('');
+            
+            // Mostrar indicador de carga
+            $('#messages').append('<div id="loading" class="system-message">ApuntIA está pensando...</div>');
+            $('#chat-container').scrollTop($('#chat-container')[0].scrollHeight);
+            
+            // Llamar al proceso AJAX
+            apex.server.process('GENERATE_RAG_RESPONSE', {
+                x01: userInput,
+                x02: conversationId
+            }, {
+                success: function(data) {
+                    $('#loading').remove();
+                    $('#messages').append('<div class="bot-message"><strong>ApuntIA:</strong> ' + data.response + '</div>');
+                    $('#chat-container').scrollTop($('#chat-container')[0].scrollHeight);
+                },
+                error: function(xhr, status, error) {
+                    $('#loading').remove();
+                    $('#messages').append('<div class="error-message">Error: No se pudo generar respuesta</div>');
+                    console.error('Error AJAX:', error);
+                }
+            });
+            
+            return false; // Prevenir envío del formulario
+        }
+        
+        // Event listeners
+        $('#send-btn').click(function(e) {
+            e.preventDefault(); // Prevenir comportamiento por defecto
+            sendMessage();
+            return false;
+        });
+        
+        $('#user-input').keypress(function(e) {
+            if (e.which == 13) {
+                e.preventDefault(); // Prevenir envío del formulario
+                sendMessage();
+                return false;
+            }
+        });
+        
+        // Inicializar conversación al cargar
+        initConversation();
+    });
+
+css: 
+  inline: |
+    /* Chat wrapper centrado */
+    .chat-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    /* Encabezado del chat */
+    .chat-header {
+        background: #1e3a5f;
+        color: white;
+        padding: 15px;
+        border-radius: 10px 10px 0 0;
+    }
+    
+    /* Tarjetas tipo flashcard */
+    .flashcard {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 10px 0;
+        cursor: pointer;
+        text-align: center;
+        transition: transform 0.4s;
+        background-color: white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    
+    .flashcard.flipped {
+        background-color: #f0f0f0;
+        transform: rotateY(180deg);
+    }
+    
+
+security: 
+  authentication: Page Requires Authentication
+  deep-linking: Application Default
+  page-access-protection: Arguments Must Have Checksum
+  form-auto-complete: Off
+  browser-cache: Application Default
+
+session-management: 
+  rejoin-sessions: Application Default
+
+advanced: 
+  enable-duplicate-page-submissions: Yes - Enable page to be re-posted
+  reload-on-submit: Only for Success
+
+server-cache: 
+  caching: Disabled
+
+regions: 
+- # ====== Region: Chat Interface ==============================
+  id: 8178395080235426
+  identification: 
+    name: Chat Interface
+    title: 'Chat :D'
+    type: Static Content
+
+  source: 
+    html-code: |
+      <div class="chat-wrapper" style="max-width: 900px; margin: 0 auto;">
+          <div class="chat-header" style="background: #1e3a5f; color: white; padding: 15px; border-radius: 10px 10px 0 0;">
+              <h3 style="margin: 0;">
+                  <span class="fa fa-robot"></span> ApuntIA - Asistente de Estudio
+              </h3>
+              <small id="conversation-info">Nueva conversación</small>
+          </div>
+          
+          <div id="chat-container" style="height: 500px; overflow-y: auto; background: #f5f5f5; padding: 20px; border-left: 1px solid #ddd; border-right: 1px solid #ddd;">
+              <div id="messages">
+                  <div class="bot-message" style="display: flex; align-items: start; margin-bottom: 15px;">
+                      <div class="avatar" style="width: 40px; height: 40px; background: #1e3a5f; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-right: 10px;">
+                          <span class="fa fa-robot"></span>
+                      </div>
+                      <div class="message-content" style="background: white; padding: 12px 16px; border-radius: 10px; max-width: 70%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                          ¡Hola! Soy ApuntIA, tu asistente de estudio. Puedo ayudarte a encontrar información en tus documentos. ¿Qué necesitas saber?
+                      </div>
+                  </div>
+              </div>
+              
+              <div id="typing-indicator" style="display: none; margin: 10px 0;">
+                  <div class="bot-message" style="display: flex; align-items: center;">
+                      <div class="avatar" style="width: 40px; height: 40px; background: #1e3a5f; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-right: 10px;">
+                          <span class="fa fa-robot"></span>
+                      </div>
+                      <div class="typing-dots" style="background: white; padding: 12px 20px; border-radius: 10px;">
+                          <span>●</span>
+                          <span>●</span>
+                          <span>●</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          
+          <div class="chat-input-area" style="background: white; padding: 15px; border: 1px solid #ddd; border-radius: 0 0 10px 10px;">
+              <div style="display: flex; gap: 10px;">
+                  <input type="text" 
+                         id="user-input" 
+                         placeholder="Escribe tu pregunta sobre los documentos..." 
+                         style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 25px; font-size: 14px;">
+                  <button id="send-btn" 
+                          class="t-Button t-Button--hot" 
+                          style="border-radius: 25px; padding: 0 25px;">
+                      <span class="fa fa-paper-plane"></span> Enviar
+                  </button>
+              </div>
+              <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                  💡 Tip: Pregunta sobre conceptos específicos de tus apuntes
+              </div>
+          </div>
+      </div>
+
+  layout: 
+    sequence: 10
+    parent-region: No Parent
+    slot: BODY
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Standard
+    template-options: 
+    - '#DEFAULT#'
+    - t-Region--scrollBody
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    settings: 
+      output-as: HTML
+      expand-shortcuts: false
+
+- # ====== Region: Breadcrumb ==================================
+  id: 9003791047471331
+  identification: 
+    name: Breadcrumb
+    type: Breadcrumb
+
+  source: 
+    breadcrumb: Breadcrumb # 8126008590085522
+
+  layout: 
+    sequence: 10
+    parent-region: No Parent
+    slot: REGION_POSITION_01
+    start-new-layout: false
+    start-new-row: true
+    column: Automatic
+    new-column: true
+    column-span: Automatic
+
+  appearance: 
+    template: Title Bar
+    template-options: 
+    - '#DEFAULT#'
+    - t-BreadcrumbRegion--useBreadcrumbTitle
+    render-components: Above Content
+
+  accessibility: 
+    use-landmark: true
+    landmark-type: Template Default
+
+  advanced: 
+    region-display-selector: false
+    exclude-title-from-translation: false
+
+  customization: 
+    customizable: Not Customizable By End Users
+
+  attributes: 
+    appearance: 
+      breadcrumb-template: Breadcrumb
+      template-options: 
+      - '#DEFAULT#'
+
+processes: 
+- # ====== Process: GENERATE_RAG_RESPONSE ======================
+  id: 8178203642235425
+  identification: 
+    name: GENERATE_RAG_RESPONSE
+    type: Execute Code
+    execution-chain: None
+
+  source: 
+    location: Local Database
+    language: PL/SQL
+    pl/sql-code: |
+      DECLARE
+          v_response CLOB;
+          v_conversation_id NUMBER;
+      BEGIN
+          BEGIN
+              v_conversation_id := TO_NUMBER(apex_application.g_x02);
+          EXCEPTION
+              WHEN OTHERS THEN
+                  v_conversation_id := NULL;
+          END;
+          
+          v_response := PKG_APUNTIA_RAG.generate_rag_response(
+              p_user_query => apex_application.g_x01,
+              p_conversation_id => v_conversation_id,
+              p_user_id => :APP_USER
+          );
+          
+          apex_json.open_object;
+          apex_json.write('success', true);
+          apex_json.write('response', v_response);
+          apex_json.write('conversation_id', NVL(v_conversation_id, 0));
+          apex_json.close_object;
+          
+      EXCEPTION
+          WHEN OTHERS THEN
+              apex_json.open_object;
+              apex_json.write('success', false);
+              apex_json.write('error', 'Error: ' || SQLERRM);
+              apex_json.write('response', 'Lo siento, ocurrió un error procesando tu consulta.');
+              apex_json.close_object;
+      END;
+
+  execution: 
+    sequence: 10
+    point: Ajax Callback
+    run-process: Once Per Page Visit (default)
+
+- # ====== Process: CREATE_CONVERSATION ========================
+  id: 8178419321235427
+  identification: 
+    name: CREATE_CONVERSATION
+    type: Execute Code
+    execution-chain: None
+
+  source: 
+    location: Local Database
+    language: PL/SQL
+    pl/sql-code: |
+      DECLARE
+          v_conversation_id NUMBER;
+      BEGIN
+          v_conversation_id := PKG_APUNTIA_RAG.create_conversation(
+              p_user_id => :APP_USER,
+              p_title => apex_application.g_x01
+          );
+          
+          apex_json.open_object;
+          apex_json.write('success', true);
+          apex_json.write('conversation_id', v_conversation_id);
+          apex_json.close_object;
+      EXCEPTION
+          WHEN OTHERS THEN
+              apex_json.open_object;
+              apex_json.write('success', false);
+              apex_json.write('error', SQLERRM);
+              apex_json.close_object;
+      END;
+
+  execution: 
+    sequence: 10
+    point: Ajax Callback
+    run-process: Once Per Page Visit (default)
+
